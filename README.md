@@ -20,10 +20,3 @@ The SNR data format is the same as: https://gnssrefl.readthedocs.io/en/latest/pa
 but with differences on fourth and fifth+ columns:
 Instead of seconds of day in the fourth column it is GPS time: https://docs.astropy.org/en/stable/api/astropy.time.TimeGPS.html
 The fifth column is L1 SNR (there are only five columns)
-
-## to do
-test on mac
-prep data for uploading
-write decrption of files to go with data
-make a new repo and make a release version to go with it
-maybe add figure...?
