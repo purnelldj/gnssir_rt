@@ -1,15 +1,15 @@
 import datetime
 
 # general parameters
-stationdir = 'PATH/TO/gnssir_rt_snr/rv3s'
+stationdir = "PATH/TO/gnssir_rt_snr/rv3s"
 sdt = datetime.datetime(2020, 9, 9, 18)  # 9, 9, 18
 edt = datetime.datetime(2020, 10, 9, 13)  # 10, 9, 13
-antennaids = ['a', 'b', 'c', 'd']
+antennaids = ["a", "b", "c", "d"]
 hgts = [0.2, 0.3, 0, 0.1]
 lla = [46.340526, -72.539128, -22.4]
-gptfile = stationdir + '/tropd_input.txt'
-snrdir = stationdir + '/snr'
-arcdir = stationdir + '/arcs'
+gptfile = stationdir + "/tropd_input.txt"
+snrdir = stationdir + "/snr"
+arcdir = stationdir + "/arcs"
 
 # snr2arc parameters
 elvinterp = True
@@ -27,7 +27,7 @@ iterdt_spline = 1 * 60 * 60
 prek = 2
 postk = 2
 fixed_std = 0.3
-#latency = 60*60
+# latency = 60*60
 pktnlim = 3
 
-outdir = 'temp_outputs'
+outdir = "temp_outputs"

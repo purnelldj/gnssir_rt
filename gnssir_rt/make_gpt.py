@@ -8,6 +8,7 @@ https://ieeexplore.ieee.org/document/10078314
 """
 import os
 import pickle
+
 import numpy as np
 
 
@@ -19,7 +20,10 @@ def makegptfile(gptfile, gpt_init_file, site_lat, site_lon):
     lat and lon in degrees (NOT RADIANS)
     kristine m. larson
     """
-    print('A station specific refraction output file will be written to ', gptfile)
+    print(
+        "A station specific refraction output file will be written to ",
+        gptfile,
+    )
 
     #   change to radians
     dlat = site_lat * np.pi / 180
@@ -27,9 +31,19 @@ def makegptfile(gptfile, gpt_init_file, site_lat, site_lon):
 
     #   read VMF gridfile in pickle format
     if os.path.isfile(gpt_init_file):
-        f = open(gpt_init_file, 'rb')
-        [All_pgrid, All_Tgrid, All_Qgrid, All_dTgrid, All_U, All_Hs, All_ahgrid, All_awgrid, All_lagrid,
-         All_Tmgrid] = pickle.load(f)
+        f = open(gpt_init_file, "rb")
+        [
+            All_pgrid,
+            All_Tgrid,
+            All_Qgrid,
+            All_dTgrid,
+            All_U,
+            All_Hs,
+            All_ahgrid,
+            All_awgrid,
+            All_lagrid,
+            All_Tmgrid,
+        ] = pickle.load(f)
         f.close()
 
     # really should e zero to four, but whatever
@@ -39,8 +53,8 @@ def makegptfile(gptfile, gpt_init_file, site_lat, site_lon):
 
     # figure out grid index
     # % only positive longitude in degrees
-    if (dlon < 0):
-        plon = (dlon + 2 * np.pi) * 180 / np.pi;
+    if dlon < 0:
+        plon = (dlon + 2 * np.pi) * 180 / np.pi
     else:
         plon = dlon * 180 / np.pi
     #
@@ -54,19 +68,19 @@ def makegptfile(gptfile, gpt_init_file, site_lat, site_lon):
 
     #    % normalized (to one) differences, can be positive or negative
     # % changed for the 1 degree grid (GP)
-    diffpod = (ppod - (ipod - 0.5))
-    difflon = (plon - (ilon - 0.5))
+    diffpod = ppod - (ipod - 0.5)
+    difflon = plon - (ilon - 0.5)
     #    % added by HCY
     # % changed for the 1 degree grid (GP)
-    if (ipod == 181):
+    if ipod == 181:
         ipod = 180
-    if (ilon == 361):
+    if ilon == 361:
         ilon = 1
-    if (ilon == 0):
+    if ilon == 0:
         ilon = 360
 
     #     get the number of the corresponding line
-    #	 changed for the 1 degree grid (GP)
+    # 	 changed for the 1 degree grid (GP)
     indx[0] = (ipod - 1) * 360 + ilon
     #  save the lat lon of the grid points
     indx_lat[0] = 90 - ipod + 1
@@ -75,11 +89,12 @@ def makegptfile(gptfile, gpt_init_file, site_lat, site_lon):
     # % with the 1 degree grid the limits are lower and upper (GP)
 
     bilinear = 0
-    max_ind = 1
+    # max_ind = 1
     if (ppod > 0.5) and (ppod < 179.5):
         bilinear = 1
-    if (bilinear == 1):
-        max_ind = 4
+    if bilinear == 1:
+        pass
+        # max_ind = 4
 
     #    % bilinear interpolation
     #    % get the other indexes
@@ -87,16 +102,19 @@ def makegptfile(gptfile, gpt_init_file, site_lat, site_lon):
     ipod1 = ipod + np.sign(diffpod)
     ilon1 = ilon + np.sign(difflon)
     # % changed for the 1 degree grid (GP)
-    if (ilon1 == 361):
+    if ilon1 == 361:
         ilon1 = 1
-    if (ilon1 == 0):
+    if ilon1 == 0:
         ilon1 = 360
     #         get the number of the line
     # changed for the 1 degree grid (GP)
     # four indices ???
-    indx[1] = (ipod1 - 1) * 360 + ilon;  # % along same longitude
-    indx[2] = (ipod - 1) * 360 + ilon1;  # % along same polar distance
-    indx[3] = (ipod1 - 1) * 360 + ilon1;  # % diagonal
+    indx[1] = (ipod1 - 1) * 360 + ilon
+    # % along same longitude
+    indx[2] = (ipod - 1) * 360 + ilon1
+    # % along same polar distance
+    indx[3] = (ipod1 - 1) * 360 + ilon1
+    # % diagonal
     #
     # save the lat lon of the grid points  lat between [-90 ;90]  lon [0 360]
     indx_lat[1] = 90 - ipod1 + np.sign(diffpod)
@@ -104,7 +122,7 @@ def makegptfile(gptfile, gpt_init_file, site_lat, site_lon):
     indx_lat[2] = 90 - ipod + 1
     indx_lon[2] = ilon1 - np.sign(difflon)
     indx_lat[3] = 90 - ipod1 + np.sign(diffpod)
-    indx_lon[3] = ilon1 - np.sign(difflon);
+    indx_lon[3] = ilon1 - np.sign(difflon)
 
     # extract the new grid
     # will need to do 0-4 instead of 1-5 because stored that way in python
@@ -119,18 +137,29 @@ def makegptfile(gptfile, gpt_init_file, site_lat, site_lon):
     w = 0
     # need to write values for a given station to a plain text file
     #
-    fout = open(gptfile, 'w+')
+    fout = open(gptfile, "w+")
     for a in indx_list:
         for k in [0, 1, 2, 3, 4]:
             fout.write(
                 " {0:4.0f} {1:5.0f} {2:13.4f} {3:10.4f} {4:10.6f} {5:10.4f} {6:12.5f} {7:12.5f} {8:10.6f} {9:10.6f} {10:10.6f} {11:10.4f} \n".format(
-                    indx_lat[w], indx_lon[w], All_pgrid[a, k], All_Tgrid[a, k], All_Qgrid[a, k] * 1000,
-                    All_dTgrid[a, k] * 1000, All_U[a, 0], All_Hs[a, 0], All_ahgrid[a, k] * 1000,
-                    All_awgrid[a, k] * 1000, All_lagrid[a, k], All_Tmgrid[a, k]))
+                    indx_lat[w],
+                    indx_lon[w],
+                    All_pgrid[a, k],
+                    All_Tgrid[a, k],
+                    All_Qgrid[a, k] * 1000,
+                    All_dTgrid[a, k] * 1000,
+                    All_U[a, 0],
+                    All_Hs[a, 0],
+                    All_ahgrid[a, k] * 1000,
+                    All_awgrid[a, k] * 1000,
+                    All_lagrid[a, k],
+                    All_Tmgrid[a, k],
+                )
+            )
 
         w += 1
     fout.close()
-    print('station specific refraction file written')
+    print("station specific refraction file written")
 
 
 def gpt2_1w(gptfile, dmjd, dlat, dlon, hell, it):
@@ -157,22 +186,22 @@ def gpt2_1w(gptfile, dmjd, dlat, dlon, hell, it):
     """
 
     #  need to find diffpod and difflon
-    if (dlon < 0):
-        plon = (dlon + 2 * np.pi) * 180 / np.pi;
+    if dlon < 0:
+        plon = (dlon + 2 * np.pi) * 180 / np.pi
     else:
-        plon = dlon * 180 / np.pi;
+        plon = dlon * 180 / np.pi
     # transform to polar distance in degrees
-    ppod = (-dlat + np.pi / 2) * 180 / np.pi;
+    ppod = (-dlat + np.pi / 2) * 180 / np.pi
 
     #       % find the index (line in the grid file) of the nearest point
     #  	  % changed for the 1 degree grid (GP)
-    ipod = np.floor(ppod + 1);
-    ilon = np.floor(plon + 1);
+    ipod = np.floor(ppod + 1)
+    ilon = np.floor(plon + 1)
 
     #   normalized (to one) differences, can be positive or negative
-    #	% changed for the 1 degree grid (GP)
-    diffpod = (ppod - (ipod - 0.5));
-    difflon = (plon - (ilon - 0.5));
+    # 	% changed for the 1 degree grid (GP)
+    diffpod = ppod - (ipod - 0.5)
+    difflon = plon - (ilon - 0.5)
 
     # change the reference epoch to January 1 2000
     # print('Modified Julian Day', dmjd)
@@ -182,36 +211,36 @@ def gpt2_1w(gptfile, dmjd, dlat, dlon, hell, it):
     pi4 = 4 * np.pi
 
     # mean gravity in m/s**2
-    gm = 9.80665;
+    gm = 9.80665
     # molar mass of dry air in kg/mol
-    dMtr = 28.965E-3
+    dMtr = 28.965e-3
     #    dMtr = 28.965*10^-3
     # universal gas constant in J/K/mol
     Rg = 8.3143
 
     # factors for amplitudes, i.e. whether you want time varying
-    if (it == 1):
+    if it == 1:
         # print('>>>> no refraction time variation ')
-        cosfy = 0;
-        coshy = 0;
-        sinfy = 0;
-        sinhy = 0;
+        cosfy = 0
+        coshy = 0
+        sinfy = 0
+        sinhy = 0
     else:
         cosfy = np.cos(pi2 * dmjd1 / 365.25)
         coshy = np.cos(pi4 * dmjd1 / 365.25)
         sinfy = np.sin(pi2 * dmjd1 / 365.25)
         sinhy = np.sin(pi4 * dmjd1 / 365.25)
-    cossin = np.matrix([1, cosfy, sinfy, coshy, sinhy])
+    # cossin = np.matrix([1, cosfy, sinfy, coshy, sinhy])
     # initialization of new vectors
-    p = 0;
-    T = 0;
-    dT = 0;
-    Tm = 0;
-    e = 0;
-    ah = 0;
-    aw = 0;
-    la = 0;
-    undu = 0;
+    p = 0
+    T = 0
+    dT = 0
+    Tm = 0
+    e = 0
+    ah = 0
+    aw = 0
+    la = 0
+    undu = 0
     undul = np.zeros(4)
     Ql = np.zeros(4)
     dTl = np.zeros(4)
@@ -223,114 +252,172 @@ def gpt2_1w(gptfile, dmjd, dlat, dlon, hell, it):
     Tml = np.zeros(4)
     el = np.zeros(4)
     #
-    pgrid, Tgrid, Qgrid, dTgrid, u, Hs, ahgrid, awgrid, lagrid, Tmgrid = read_4by5(gptfile)
+    (
+        pgrid,
+        Tgrid,
+        Qgrid,
+        dTgrid,
+        u,
+        Hs,
+        ahgrid,
+        awgrid,
+        lagrid,
+        Tmgrid,
+    ) = read_4by5(gptfile)
     #
-    for l in [0, 1, 2, 3]:
-        KL = l  # silly to have this as a variable like this
+    for ll in [0, 1, 2, 3]:
+        KL = ll  # silly to have this as a variable like this
         #  transforming ellipsoidal height to orthometric height:
         #  Hortho = -N + Hell
-        undul[l] = u[KL]
-        hgt = hell - undul[l]
+        undul[ll] = u[KL]
+        hgt = hell - undul[ll]
         #  pressure, temperature at the height of the grid
-        T0 = Tgrid[KL, 0] + Tgrid[KL, 1] * cosfy + Tgrid[KL, 2] * sinfy + Tgrid[KL, 3] * coshy + Tgrid[KL, 4] * sinhy;
-        tg = float(Tgrid[KL, :] * cossin.T)
+        T0 = (
+            Tgrid[KL, 0]
+            + Tgrid[KL, 1] * cosfy
+            + Tgrid[KL, 2] * sinfy
+            + Tgrid[KL, 3] * coshy
+            + Tgrid[KL, 4] * sinhy
+        )
+        # tg = float(Tgrid[KL, :] * cossin.T)
         #     print(T0,tg)
 
-        p0 = pgrid[KL, 0] + pgrid[KL, 1] * cosfy + pgrid[KL, 2] * sinfy + pgrid[KL, 3] * coshy + pgrid[KL, 4] * sinhy;
+        p0 = (
+            pgrid[KL, 0]
+            + pgrid[KL, 1] * cosfy
+            + pgrid[KL, 2] * sinfy
+            + pgrid[KL, 3] * coshy
+            + pgrid[KL, 4] * sinhy
+        )
 
         #       humidity
-        Ql[l] = Qgrid[KL, 0] + Qgrid[KL, 1] * cosfy + Qgrid[KL, 2] * sinfy + Qgrid[KL, 3] * coshy + Qgrid[
-            KL, 4] * sinhy;
+        Ql[ll] = (
+            Qgrid[KL, 0]
+            + Qgrid[KL, 1] * cosfy
+            + Qgrid[KL, 2] * sinfy
+            + Qgrid[KL, 3] * coshy
+            + Qgrid[KL, 4] * sinhy
+        )
 
         # reduction = stationheight - gridheight
         Hs1 = Hs[KL]
-        redh = hgt - Hs1;
+        redh = hgt - Hs1
 
         # lapse rate of the temperature in degree / m
-        dTl[l] = dTgrid[KL, 0] + dTgrid[KL, 1] * cosfy + dTgrid[KL, 2] * sinfy + dTgrid[KL, 3] * coshy + dTgrid[
-            KL, 4] * sinhy;
+        dTl[ll] = (
+            dTgrid[KL, 0]
+            + dTgrid[KL, 1] * cosfy
+            + dTgrid[KL, 2] * sinfy
+            + dTgrid[KL, 3] * coshy
+            + dTgrid[KL, 4] * sinhy
+        )
 
         # temperature reduction to station height
-        Tl[l] = T0 + dTl[l] * redh - 273.15;
+        Tl[ll] = T0 + dTl[ll] * redh - 273.15
 
         #  virtual temperature
-        Tv = T0 * (1 + 0.6077 * Ql[l])
+        Tv = T0 * (1 + 0.6077 * Ql[ll])
         c = gm * dMtr / (Rg * Tv)
 
         # pressure in hPa
-        pl[l] = (p0 * np.exp(-c * redh)) / 100
+        pl[ll] = (p0 * np.exp(-c * redh)) / 100
 
         #  hydrostatic coefficient ah
-        ahl[l] = ahgrid[KL, 0] + ahgrid[KL, 1] * cosfy + ahgrid[KL, 2] * sinfy + ahgrid[KL, 3] * coshy + ahgrid[
-            KL, 4] * sinhy;
+        ahl[ll] = (
+            ahgrid[KL, 0]
+            + ahgrid[KL, 1] * cosfy
+            + ahgrid[KL, 2] * sinfy
+            + ahgrid[KL, 3] * coshy
+            + ahgrid[KL, 4] * sinhy
+        )
 
         # wet coefficient aw
-        awl[l] = awgrid[KL, 0] + awgrid[KL, 1] * cosfy + awgrid[KL, 2] * sinfy + awgrid[KL, 3] * coshy + awgrid[
-            KL, 4] * sinhy;
+        awl[ll] = (
+            awgrid[KL, 0]
+            + awgrid[KL, 1] * cosfy
+            + awgrid[KL, 2] * sinfy
+            + awgrid[KL, 3] * coshy
+            + awgrid[KL, 4] * sinhy
+        )
 
         # water vapor decrease factor la - added by GP
-        lal[l] = lagrid[KL, 0] + lagrid[KL, 1] * cosfy + lagrid[KL, 2] * sinfy + lagrid[KL, 3] * coshy + lagrid[
-            KL, 4] * sinhy;
+        lal[ll] = (
+            lagrid[KL, 0]
+            + lagrid[KL, 1] * cosfy
+            + lagrid[KL, 2] * sinfy
+            + lagrid[KL, 3] * coshy
+            + lagrid[KL, 4] * sinhy
+        )
 
         # mean temperature of the water vapor Tm - added by GP
-        Tml[l] = Tmgrid[KL, 0] + Tmgrid[KL, 1] * cosfy + Tmgrid[KL, 2] * sinfy + Tmgrid[KL, 3] * coshy + Tmgrid[
-            KL, 4] * sinhy;
+        Tml[ll] = (
+            Tmgrid[KL, 0]
+            + Tmgrid[KL, 1] * cosfy
+            + Tmgrid[KL, 2] * sinfy
+            + Tmgrid[KL, 3] * coshy
+            + Tmgrid[KL, 4] * sinhy
+        )
 
         # water vapor pressure in hPa - changed by GP
-        e0 = Ql[l] * p0 / (0.622 + 0.378 * Ql[l]) / 100;  # % on the grid
-        aa = (100 * pl[l] / p0)
-        bb = lal[l] + 1
-        el[l] = e0 * np.power(aa, bb)  # % on the station height - (14) Askne and Nordius, 1987
+        e0 = Ql[ll] * p0 / (0.622 + 0.378 * Ql[ll]) / 100
+        # % on the grid
+        aa = 100 * pl[ll] / p0
+        bb = lal[ll] + 1
+        el[ll] = e0 * np.power(
+            aa, bb
+        )  # % on the station height - (14) Askne and Nordius, 1987
 
-    dnpod1 = np.abs(diffpod);  # % distance nearer point
-    dnpod2 = 1 - dnpod1;  # % distance to distant point
-    dnlon1 = np.abs(difflon);
-    dnlon2 = 1 - dnlon1;
+    dnpod1 = np.abs(diffpod)
+    # % distance nearer point
+    dnpod2 = 1 - dnpod1
+    # % distance to distant point
+    dnlon1 = np.abs(difflon)
+    dnlon2 = 1 - dnlon1
 
     #   pressure
-    R1 = dnpod2 * pl[0] + dnpod1 * pl[1];
-    R2 = dnpod2 * pl[2] + dnpod1 * pl[3];
-    p = dnlon2 * R1 + dnlon1 * R2;
+    R1 = dnpod2 * pl[0] + dnpod1 * pl[1]
+    R2 = dnpod2 * pl[2] + dnpod1 * pl[3]
+    p = dnlon2 * R1 + dnlon1 * R2
 
     #   temperature
-    R1 = dnpod2 * Tl[0] + dnpod1 * Tl[1];
-    R2 = dnpod2 * Tl[2] + dnpod1 * Tl[3];
-    T = dnlon2 * R1 + dnlon1 * R2;
+    R1 = dnpod2 * Tl[0] + dnpod1 * Tl[1]
+    R2 = dnpod2 * Tl[2] + dnpod1 * Tl[3]
+    T = dnlon2 * R1 + dnlon1 * R2
 
     #   temperature in degree per km
-    R1 = dnpod2 * dTl[0] + dnpod1 * dTl[1];
-    R2 = dnpod2 * dTl[2] + dnpod1 * dTl[3];
-    dT = (dnlon2 * R1 + dnlon1 * R2) * 1000;
+    R1 = dnpod2 * dTl[0] + dnpod1 * dTl[1]
+    R2 = dnpod2 * dTl[2] + dnpod1 * dTl[3]
+    dT = (dnlon2 * R1 + dnlon1 * R2) * 1000
 
     #   water vapor pressure in hPa - changed by GP
-    R1 = dnpod2 * el[0] + dnpod1 * el[1];
-    R2 = dnpod2 * el[2] + dnpod1 * el[3];
-    e = dnlon2 * R1 + dnlon1 * R2;
+    R1 = dnpod2 * el[0] + dnpod1 * el[1]
+    R2 = dnpod2 * el[2] + dnpod1 * el[3]
+    e = dnlon2 * R1 + dnlon1 * R2
 
     #   hydrostatic
-    R1 = dnpod2 * ahl[0] + dnpod1 * ahl[1];
-    R2 = dnpod2 * ahl[2] + dnpod1 * ahl[3];
-    ah = dnlon2 * R1 + dnlon1 * R2;
+    R1 = dnpod2 * ahl[0] + dnpod1 * ahl[1]
+    R2 = dnpod2 * ahl[2] + dnpod1 * ahl[3]
+    ah = dnlon2 * R1 + dnlon1 * R2
 
     #   wet
-    R1 = dnpod2 * awl[0] + dnpod1 * awl[1];
-    R2 = dnpod2 * awl[2] + dnpod1 * awl[3];
-    aw = dnlon2 * R1 + dnlon1 * R2;
+    R1 = dnpod2 * awl[0] + dnpod1 * awl[1]
+    R2 = dnpod2 * awl[2] + dnpod1 * awl[3]
+    aw = dnlon2 * R1 + dnlon1 * R2
 
     #  undulation
-    R1 = dnpod2 * undul[0] + dnpod1 * undul[1];
-    R2 = dnpod2 * undul[2] + dnpod1 * undul[3];
-    undu = dnlon2 * R1 + dnlon1 * R2;
+    R1 = dnpod2 * undul[0] + dnpod1 * undul[1]
+    R2 = dnpod2 * undul[2] + dnpod1 * undul[3]
+    undu = dnlon2 * R1 + dnlon1 * R2
 
     #   water vapor decrease factor la - added by GP
-    R1 = dnpod2 * lal[0] + dnpod1 * lal[1];
-    R2 = dnpod2 * lal[2] + dnpod1 * lal[3];
-    la = dnlon2 * R1 + dnlon1 * R2;
+    R1 = dnpod2 * lal[0] + dnpod1 * lal[1]
+    R2 = dnpod2 * lal[2] + dnpod1 * lal[3]
+    la = dnlon2 * R1 + dnlon1 * R2
 
     #   mean temperature of the water vapor Tm - added by GP
-    R1 = dnpod2 * Tml[0] + dnpod1 * Tml[1];
-    R2 = dnpod2 * Tml[2] + dnpod1 * Tml[3];
-    Tm = dnlon2 * R1 + dnlon1 * R2;
+    R1 = dnpod2 * Tml[0] + dnpod1 * Tml[1]
+    R2 = dnpod2 * Tml[2] + dnpod1 * Tml[3]
+    Tm = dnlon2 * R1 + dnlon1 * R2
 
     return p, T, dT, Tm, e, ah, aw, la, undu
 
@@ -341,8 +428,8 @@ def read_4by5(gptfile):
     input station name (4 char), lat,long,elevation in deg/deg/meters
     requires that an environment variable exists for REFL_CODE
     """
-    x = np.genfromtxt(gptfile, comments='%')
-    max_ind = 4
+    x = np.genfromtxt(gptfile, comments="%")
+    # max_ind = 4
     pgrid = np.zeros((4, 5))
     Tgrid = np.zeros((4, 5))
     Qgrid = np.zeros((4, 5))
@@ -370,5 +457,3 @@ def read_4by5(gptfile):
             ij += 1
 
     return pgrid, Tgrid, Qgrid, dTgrid, u, Hs, ahgrid, awgrid, lagrid, Tmgrid
-
-

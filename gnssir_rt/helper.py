@@ -10,26 +10,25 @@ from scipy import interpolate
 
 
 def readsnrtxt(snrfile):
-    """
-    """
+    """ """
     snrdata = np.loadtxt(snrfile)
     return snrdata
 
 
 def datetime2gps(dt):
-    timeobj = Time(dt, format='datetime')
+    timeobj = Time(dt, format="datetime")
     gpstime = timeobj.gps
     return gpstime
 
 
 def gps2datetime(gt):
-    timeobj = Time(gt, format='gps', scale='utc')
+    timeobj = Time(gt, format="gps", scale="utc")
     dt = timeobj.datetime
     return dt
 
 
 def gps2datenum(gt):
-    timeobj = Time(gt, format='gps', scale='utc')
+    timeobj = Time(gt, format="gps", scale="utc")
     dt = timeobj.datetime
     dn = date2num(dt)
     return dn
@@ -39,22 +38,47 @@ def glonasswlen(prn, gsignal):
     """
     this only works for L1 and L2
     """
-    channel = [1, -4, 5, 6, 1, -4, 5, 6, -2, -7, 0, -1, -2, -7, 0, -1, 4, -3, 3, 2, 4, -3, 3, 2]
+    channel = [
+        1,
+        -4,
+        5,
+        6,
+        1,
+        -4,
+        5,
+        6,
+        -2,
+        -7,
+        0,
+        -1,
+        -2,
+        -7,
+        0,
+        -1,
+        4,
+        -3,
+        3,
+        2,
+        4,
+        -3,
+        3,
+        2,
+    ]
     offset = 101  # 101 onwards is glonass
     try:
-        channel_t = np.array([channel[i-offset] for i in prn], dtype=float)
+        channel_t = np.array([channel[i - offset] for i in prn], dtype=float)
     except TypeError:
         try:
-            channel_t = channel[prn-offset]
+            channel_t = channel[prn - offset]
         except IndexError:
-            print('found an unknown glonass satellite with PRN ' + str(prn))
+            print("found an unknown glonass satellite with PRN " + str(prn))
             exit()
-    if gsignal == 'L1':
+    if gsignal == "L1":
         lcar = 299792458 / (1602e06 + channel_t * 0.5625e06)
-    elif gsignal == 'L2':
-        lcar = 299792458. / (1246e06 + channel_t * 0.4375e06)
+    elif gsignal == "L2":
+        lcar = 299792458.0 / (1246e06 + channel_t * 0.4375e06)
     else:
-        print('gsignal not recognised')
+        print("gsignal not recognised")
         lcar = np.nan
     return lcar
 
@@ -64,8 +88,10 @@ def cubspl_nans(tplot, knots, kval):
     kval_red = kval[tfilter]
     knots_red = knots[tfilter]
     naninds = np.where(np.isnan(kval))[0]
-    cubspl_f = interpolate.interp1d(knots_red, kval_red, kind='cubic')
-    tfilter = np.logical_and(tplot >= np.min(knots_red), tplot <= np.max(knots_red))
+    cubspl_f = interpolate.interp1d(knots_red, kval_red, kind="cubic")
+    tfilter = np.logical_and(
+        tplot >= np.min(knots_red), tplot <= np.max(knots_red)
+    )
     tplot_red = tplot[tfilter]
     rh_out = cubspl_f(tplot_red)
     # now add in parts before and after
@@ -101,11 +127,15 @@ def residuals_cubspl_spectral(kval, knots, rh_arr):
     """
     function needed for inverse analysis
     """
-    tfilter = np.logical_and(rh_arr[:, 0] >= knots[0], rh_arr[:, 0] <= knots[-1])
+    tfilter = np.logical_and(
+        rh_arr[:, 0] >= knots[0], rh_arr[:, 0] <= knots[-1]
+    )
     rh_arr = rh_arr[tfilter]
     dt_even = 1 * 60
-    t_even = np.linspace(knots[0], knots[-1], int((knots[-1] - knots[0]) / dt_even) + 1)
-    cubspl_f = interpolate.interp1d(knots, kval, kind='cubic')
+    t_even = np.linspace(
+        knots[0], knots[-1], int((knots[-1] - knots[0]) / dt_even) + 1
+    )
+    cubspl_f = interpolate.interp1d(knots, kval, kind="cubic")
     cubspl_even = cubspl_f(t_even)
     dhdt_even = np.gradient(cubspl_even, dt_even)
     f = interpolate.interp1d(t_even, dhdt_even)
@@ -116,4 +146,3 @@ def residuals_cubspl_spectral(kval, knots, rh_arr):
     cubspl_adj = cubspl_f(tgpst) + dhdt * tane_dedt
     residual_spectral = cubspl_adj - reflh
     return residual_spectral
-
