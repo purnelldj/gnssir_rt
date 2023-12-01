@@ -645,3 +645,5 @@ def arcs2splines(
         f.close()
 
     plotrhspline(rh_arr_all, knots=knots_all, kval_spectral=kval_spectral, **kwargs)
+
+    return invout
