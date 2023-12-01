@@ -33,7 +33,7 @@ python init_localproc.py
 
 ### Step 2: process test data
 ```
-python main.py sjdlr arcs2splines
+python main_cl.py sjdlr arcs2splines
 ```
 this command should produce the following plot:
 

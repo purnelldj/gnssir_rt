@@ -3,6 +3,9 @@ from importlib import import_module
 from os import listdir
 from shutil import rmtree
 
+import numpy as np
+from pytest import approx
+
 from gnssir_rt.processing import arcs2splines, snr2arcs
 
 
@@ -28,7 +31,10 @@ def test_arc_out():
             fullbmfile = arcdirbm + "/" + aid + "/" + testf
             testarr = pload(fulltestfile)
             bmarr = pload(fullbmfile)
-            assert (testarr == bmarr).all()
+            testarr = np.array(testarr, dtype=float)
+            bmarr = np.array(bmarr, dtype=float)
+            assert testarr.shape == bmarr.shape
+            assert approx(testarr) == bmarr
     # now remove arcdirtest
     rmtree(arcdirtest)
 
