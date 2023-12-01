@@ -1,9 +1,14 @@
 import datetime
+import os
+
+# find your local directory
+gnssir_rt_dir = os.getcwd()
+gnssir_rt_dir = gnssir_rt_dir.replace("\\", "/")  # for windows
 
 # general parameters
-stationdir = "PATH/TO/gnssir_rt_snr/rv3s"
-sdt = datetime.datetime(2020, 9, 9, 18)  # 9, 9, 18
-edt = datetime.datetime(2020, 10, 9, 13)  # 10, 9, 13
+stationdir = gnssir_rt_dir + "/localproc/rv3s"
+sdt = datetime.datetime(2020, 9, 12, 0)  # zenodo date range 9, 9, 18 to 10, 9, 13
+edt = datetime.datetime(2020, 9, 13, 0)  #
 antennaids = ["a", "b", "c", "d"]
 hgts = [0.2, 0.3, 0, 0.1]
 lla = [46.340526, -72.539128, -22.4]

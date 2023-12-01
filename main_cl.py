@@ -10,9 +10,7 @@ from gnssir_rt.processing import arcs2splines, arcsplot, snr2arcs
 
 parser = argparse.ArgumentParser()
 parser.add_argument("station", help="station ID")
-parser.add_argument(
-    "funcname", help="function name: snr2arcs, arcsplot or arcs2spline"
-)
+parser.add_argument("funcname", help="function name: snr2arcs, arcsplot or arcs2spline")
 parser.add_argument(
     "-t", "--true", nargs="+", help="add [multiple] optional params to = True"
 )

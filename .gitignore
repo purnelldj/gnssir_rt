@@ -4,3 +4,4 @@ temp_outputs/
 __pycache__/
 *.pyc
 archive/
+localproc/

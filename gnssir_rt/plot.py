@@ -17,7 +17,7 @@ def plotrhspline(
     savefig=False,
     plotdt=15 * 60,
     plotknots=False,
-    plotrh=False,
+    plotrh=True,
     plotspec=True,
     figoutstr="rhsplineout.png",
     **kwargs
@@ -33,12 +33,12 @@ def plotrhspline(
     )
     print("with " + str(len(np.unique(arcs))) + " total arcs")
     if plotfig:
-        plt.rcParams.update({"font.family": "Times New Roman"})
+        plt.rcParams.update({"font.family": "Times New Roman", "font.size": 10})
         if "figsize" in kwargs:
             figsize = kwargs.get("figsize")
             _, ax = plt.subplots(figsize=(figsize[0], figsize[1]))
         else:
-            _, ax = plt.subplots(figsize=(9, 4))
+            _, ax = plt.subplots(figsize=(5, 2.5))
         if plotrh:
             plot_primary_secondary_peaks = False
             if plot_primary_secondary_peaks:
@@ -57,9 +57,7 @@ def plotrhspline(
                 )
                 parc_2.set_label("secondary peaks")
             else:
-                (parc,) = plt.plot_date(
-                    arcs_dn, arcs, ".", markersize=2, color="gray"
-                )
+                (parc,) = plt.plot_date(arcs_dn, arcs, ".", markersize=2, color="gray")
                 parc.set_label("Arcs")
 
     # then get spline(s)
@@ -67,15 +65,13 @@ def plotrhspline(
         kval_spectral = kwargs.get("kval_spectral")
         knots = kwargs.get("knots")
         knots_dn = gps2datenum(np.array(knots, dtype=float))
-        tt = np.linspace(
-            knots[0], knots[-1], int((knots[-1] - knots[0]) / plotdt)
-        )
+        tt = np.linspace(knots[0], knots[-1], int((knots[-1] - knots[0]) / plotdt))
         spectral = cubspl_nans(tt, knots, kval_spectral)
         tt_dn = gps2datenum(tt)
         if plotfig and plotspec:
             # pspec, = plt.plot_date(dn_spectral_rmse, spectral_rmse, '.')
             (pspec,) = plt.plot_date(tt_dn, spectral, "-", color="hotpink")
-            pspec.set_label("GNSS-R spline fit")
+            pspec.set_label("Spline fit")
             if plotknots:
                 kval_spectral_plot = kval_spectral
                 (pknot,) = plt.plot_date(
@@ -84,14 +80,17 @@ def plotrhspline(
                 pknot.set_label("knots")
 
     if plotfig:
-        dformat = DateFormatter("%d/%m")
-        plt.ylabel("Water level (m)")
-        ax.xaxis.set_major_formatter(dformat)
+        plt.ylabel("Reflector height (m)")
         if "xlims" in kwargs:
             xlims = kwargs.get("xlims")
-            ax.set_xlim(xlims[0], xlims[1])
         else:
-            ax.set_xlim(np.min(arcs_dn), np.min(arcs_dn[-1]))
+            xlims = [np.min(arcs_dn), np.min(arcs_dn[-1])]
+        ax.set_xlim(xlims[0], xlims[1])
+        if xlims[1] - xlims[0] < 2:
+            dformat = DateFormatter("%Hh")
+        else:
+            dformat = DateFormatter("%m-%d")
+        ax.xaxis.set_major_formatter(dformat)
         if "ylims" in kwargs:
             ylims = kwargs.get("ylims")
             ax.set_ylim(ylims[0], ylims[1])

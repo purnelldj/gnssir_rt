@@ -32,7 +32,7 @@ def tropd(
     if "gpt_init_file" in kwargs:
         gpt_init_file = kwargs.get("gpt_init_file")
     else:
-        gpt_init_file = "gnssr/gpt_1wA.pickle"
+        gpt_init_file = "gnssir_rt/gpt_1wA.pickle"
     if "metdatafile" in kwargs:
         metdatafile = kwargs.get("metdatafile")
         f = open(metdatafile, "rb")
@@ -69,9 +69,7 @@ def tropd(
         rh_arr_adj[:, irh] = rh_arr_adj[:, irh] - rh_arr[:, iahgt]
     elif adjtype == "allelv":
         rh_arr[:, irh] = rh_arr[:, irh] + rh_arr[:, iahgt]
-        rh_facs = corr_rh_facs(
-            rh_arr[:, iminelv], rh_arr[:, imaxelv], pant, tant, eant
-        )
+        rh_facs = corr_rh_facs(rh_arr[:, iminelv], rh_arr[:, imaxelv], pant, tant, eant)
         rh_arr[:, irh] = rh_arr[:, irh] + rh_arr[:, irh] * rh_facs
         rh_arr[:, irh] = rh_arr[:, irh] - rh_arr[:, iahgt]
         rh_arr_adj = rh_arr
@@ -103,9 +101,7 @@ def corr_rh_facs(elv_min, elv_max, pant, tant, eant):
     Nant = N_eqn(pant, tant, eant)
 
     if hasattr(elv_max_rad, "__len__") or elv_max_rad != elv_min_rad:
-        xi = (elv_max_corr_rad - elv_min_corr_rad) / (
-            elv_max_rad - elv_min_rad
-        )
+        xi = (elv_max_corr_rad - elv_min_corr_rad) / (elv_max_rad - elv_min_rad)
     else:
         xi = 0
 
@@ -113,9 +109,7 @@ def corr_rh_facs(elv_min, elv_max, pant, tant, eant):
     e = meanrad
     edash = meanbendelv / 180 * np.pi
     de = meanbendcorrrad
-    rh_fac1 = (
-        Nant / (np.sin(edash) ** 2) * (np.cos(edash) / np.cos(e)) * (1 + der)
-    )
+    rh_fac1 = Nant / (np.sin(edash) ** 2) * (np.cos(edash) / np.cos(e)) * (1 + der)
     rh_fac2 = -der + (np.sin(de) * np.tan(e) + 1 - np.cos(de)) * (1 + der)
     rh_facs = rh_fac1 + rh_fac2
     # rh_facs = 1 - (1 + Nant)  * (np.cos(edash) / np.cos(e)) * (1 + der)

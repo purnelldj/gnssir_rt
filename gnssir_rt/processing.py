@@ -54,9 +54,7 @@ def snr2arc(
 
     if "tempres" in kwargs:
         tempres = kwargs.get("tempres")
-        tfilter = np.where(
-            np.mod(snrdata[:, 3] - snrdata[0, 3], tempres) == 0
-        )[0]
+        tfilter = np.where(np.mod(snrdata[:, 3] - snrdata[0, 3], tempres) == 0)[0]
         snrdata = snrdata[tfilter]
 
     if "satconsts" in kwargs:
@@ -74,9 +72,7 @@ def snr2arc(
     # elvlims and azilims
     if "elvlims" in kwargs:
         elvlims = kwargs.get("elvlims")
-        tfilter = np.logical_and(
-            snrdata[:, 1] > elvlims[0], snrdata[:, 1] < elvlims[1]
-        )
+        tfilter = np.logical_and(snrdata[:, 1] > elvlims[0], snrdata[:, 1] < elvlims[1])
         snrdata = snrdata[tfilter]
     if "azilims" in kwargs:
         azilims = kwargs.get("azilims")
@@ -120,9 +116,7 @@ def snr2arc(
         ddate = np.ediff1d(date_tosort)
         delv = np.ediff1d(elv_tosort)
         bkpt = len(ddate)
-        bkpt = np.append(
-            bkpt, np.where(ddate > gaptlim)[0]
-        )  # gaps bigger than gaptlim
+        bkpt = np.append(bkpt, np.where(ddate > gaptlim)[0])  # gaps bigger than gaptlim
         bkpt = np.append(
             bkpt, np.where(np.diff(np.sign(delv)))[0]
         )  # elevation rate changes direction
@@ -172,9 +166,7 @@ def snr2arc(
                 temp_arr[0, 0] = int(np.round(np.mean(datet)))  # time of arc
                 temp_arr[0, 1] = reflh_sub[curind]  # reflector height
                 temp_arr[0, 2] = sat  # sat prn
-                dthdt = ((elvt[-1] - elvt[0]) / 180 * np.pi) / (
-                    datet[-1] - datet[0]
-                )
+                dthdt = ((elvt[-1] - elvt[0]) / 180 * np.pi) / (datet[-1] - datet[0])
                 temp_arr[0, 3] = (
                     np.tan(np.mean(elvt) / 180 * np.pi) / dthdt
                 )  # tane / (de/dt)
@@ -183,9 +175,7 @@ def snr2arc(
                 temp_arr[0, 6] = np.mean(azit)  # mean azimuth
                 temp_arr[0, 7] = pgram_sub[curind]  # peak of lsp
                 temp_arr[0, 8] = np.var(snrdt)  # variance of lsp
-                temp_arr[0, 9] = (
-                    datet[-1] - datet[0]
-                )  # length (in time) of arc
+                temp_arr[0, 9] = datet[-1] - datet[0]  # length (in time) of arc
                 temp_arr[0, 10] = pktn  # peak-to-noise ratio
                 temp_arr[0, 11] = arcid
                 rh_arr = np.vstack((rh_arr, temp_arr))
@@ -193,9 +183,7 @@ def snr2arc(
                 satt[:] = sat
                 arcidt = np.empty((len(datet)), dtype=object)
                 arcidt[:] = arcid
-                temp_arr = np.column_stack(
-                    [datet, satt, sinelvt, snrdt, arcidt]
-                )
+                temp_arr = np.column_stack([datet, satt, sinelvt, snrdt, arcidt])
                 snrdt_arr = np.vstack((snrdt_arr, temp_arr))
     # make sure that arrays are sorted by time
     rh_arr = rh_arr[rh_arr[:, 0].argsort()]
@@ -222,9 +210,7 @@ def snr2arcs(
             arcdir = arcdir_parent + "/" + aid
         print(f"snrdir: {snrdir}")
         print(f"arcdir: {arcdir}")
-        snr2arc_iterate(
-            sdt, edt, snrdir, arcdir, rhlims, arclim, iterdt_arcs, **kwargs
-        )
+        snr2arc_iterate(sdt, edt, snrdir, arcdir, rhlims, arclim, iterdt_arcs, **kwargs)
 
 
 def snr2arc_iterate(
@@ -292,9 +278,7 @@ def snr2arc_iterate(
         snrdata = np.unique(snrdata, axis=0)
         snrdata = snrdata[snrdata[:, 0].argsort()]
         snrdata = snrdata[snrdata[:, 3].argsort()]
-        tfilter = np.logical_and(
-            snrdata[:, 3] >= tgts_interp, snrdata[:, 3] < tgte
-        )
+        tfilter = np.logical_and(snrdata[:, 3] >= tgts_interp, snrdata[:, 3] < tgte)
         snrdata = snrdata[tfilter]
         if np.ma.size(snrdata, 0) == 0:
             print("mssing data")
@@ -304,12 +288,8 @@ def snr2arc_iterate(
             print("interpolating elevation")
             timey = time.time()
             snrdata = elv_interp_array(snrdata, kdt_elvinterp)
-            tfilter = np.logical_and(
-                snrdata[:, 3] >= tgts, snrdata[:, 3] < tgte
-            )
-            print(
-                f"took {(time.time() - timey):.1f} seconds to interpolate elv "
-            )
+            tfilter = np.logical_and(snrdata[:, 3] >= tgts, snrdata[:, 3] < tgte)
+            print(f"took {(time.time() - timey):.1f} seconds to interpolate elv ")
             snrdata = snrdata[tfilter]
             if np.ma.size(snrdata, 0) == 0:
                 print("mssing data")
@@ -319,16 +299,12 @@ def snr2arc_iterate(
         rh_arr, snrdt_arr = snr2arc(snrdata, rhlims, gsignal=gsignal, **kwargs)
         print(f"took {(time.time() - timey):.2f} seconds to convert to arcs ")
         Path(arcdir).mkdir(parents=True, exist_ok=True)
-        invfilestr = (
-            arcdir + "/" + str(tdt.strftime("%y_%m_%d_%H_%M")) + ".pkl"
-        )
+        invfilestr = arcdir + "/" + str(tdt.strftime("%y_%m_%d_%H_%M")) + ".pkl"
         f = open(invfilestr, "wb")
         pickle.dump(rh_arr, f)
         pickle.dump(snrdt_arr, f)
         f.close()
-        print(
-            "dumped a pickle with " + str(np.ma.size(rh_arr, axis=0)) + " arcs"
-        )
+        print("dumped a pickle with " + str(np.ma.size(rh_arr, axis=0)) + " arcs")
 
 
 def collectarcs(
@@ -354,8 +330,7 @@ def collectarcs(
         tfs = listdir(arcd)
         tfs = [tf for tf in tfs if tf[-4:] == ".pkl"]
         ttfdates = [
-            datetime.datetime.strptime(tf[0:14], "%y_%m_%d_%H_%M")
-            for tf in tfs
+            datetime.datetime.strptime(tf[0:14], "%y_%m_%d_%H_%M") for tf in tfs
         ]
         tfdates = np.append(tfdates, ttfdates)
     tfdates = np.unique(tfdates)
@@ -372,9 +347,7 @@ def collectarcs(
         rh_arrt = np.empty((0, 13))
         snrdt_arrt = np.empty((0, 6))
         for ii in range(len(arcdir)):
-            tdtf = (
-                arcdir[ii] + "/" + str(tdt.strftime("%y_%m_%d_%H_%M")) + ".pkl"
-            )
+            tdtf = arcdir[ii] + "/" + str(tdt.strftime("%y_%m_%d_%H_%M")) + ".pkl"
             try:
                 f = open(tdtf, "rb")
                 rh_arrtt = pickle.load(f)
@@ -387,13 +360,9 @@ def collectarcs(
                 snrdt_arrtt[:, 5] = hgts[ii]
                 arcid = False
                 if arcid:
-                    newarcid = [
-                        str(ii) + "_" + oldid for oldid in rh_arrtt[:, 11]
-                    ]
+                    newarcid = [str(ii) + "_" + oldid for oldid in rh_arrtt[:, 11]]
                     rh_arrtt[:, 11] = newarcid
-                    newarcid = [
-                        str(ii) + "_" + oldid for oldid in snrdt_arrtt[:, 4]
-                    ]
+                    newarcid = [str(ii) + "_" + oldid for oldid in snrdt_arrtt[:, 4]]
                     snrdt_arrtt[:, 4] = newarcid
                 rh_arrtt = np.column_stack(
                     (rh_arrtt, np.empty(np.ma.size(rh_arrtt, axis=0)))
@@ -441,9 +410,7 @@ def arcsqc(rh_arr, snrdt_arr, qc_std=True, **kwargs):
 
     if "elvlims" in kwargs:
         elvlims = kwargs.get("elvlims")
-        tfilter = np.logical_and(
-            rh_arr[:, 4] > elvlims[0], rh_arr[:, 5] < elvlims[1]
-        )
+        tfilter = np.logical_and(rh_arr[:, 4] > elvlims[0], rh_arr[:, 5] < elvlims[1])
         rh_arr = rh_arr[tfilter, :]
 
     if "azilims" in kwargs:
@@ -461,9 +428,7 @@ def arcsqc(rh_arr, snrdt_arr, qc_std=True, **kwargs):
     if "minpsd" in kwargs:
         minpsd = kwargs.get("minpsd")
         if np.ma.size(rh_arr, axis=0) > 0:
-            rh_arr = rh_arr[
-                np.logical_or(rh_arr[:, 7] > minpsd, rh_arr[:, 11] == 1), :
-            ]
+            rh_arr = rh_arr[np.logical_or(rh_arr[:, 7] > minpsd, rh_arr[:, 11] == 1), :]
 
     if "pktnlim" in kwargs:
         pktnlim = kwargs.get("pktnlim")
@@ -498,9 +463,7 @@ def arcsqc(rh_arr, snrdt_arr, qc_std=True, **kwargs):
     if "snrqc" in kwargs:
         snrqc = kwargs.get("snrqc")
         if snrqc:
-            snrdt_arr = snrdt_arr[
-                np.isin(snrdt_arr[:, 4], np.unique(rh_arr[:, 11]))
-            ]
+            snrdt_arr = snrdt_arr[np.isin(snrdt_arr[:, 4], np.unique(rh_arr[:, 11]))]
     snrdt_arr[:, 4] = snrdt_arr[
         :, 5
     ]  # the column going into arcs2spline needs to be the hgt
@@ -509,15 +472,11 @@ def arcsqc(rh_arr, snrdt_arr, qc_std=True, **kwargs):
 
 
 def arcsplot(arcdir, sdt, edt, hgts, antennaids, arclim=60 * 60, **kwargs):
-    rh_arr, _ = collectarcs(
-        arcdir, sdt, edt, hgts, antennaids, arclim=arclim, **kwargs
-    )
+    rh_arr, _ = collectarcs(arcdir, sdt, edt, hgts, antennaids, arclim=arclim, **kwargs)
     plotrhspline(rh_arr, plotrh=True, **kwargs)
 
 
-def arcs2spline(
-    rh_arr, snrdt_arr, knots, doplot=False, tropd_adj=True, **kwargs
-):
+def arcs2spline(rh_arr, snrdt_arr, knots, doplot=False, tropd_adj=True, **kwargs):
     """
     first and last knots will be ignored
     """
@@ -593,9 +552,7 @@ def arcs2spline(
     invout["kval_spectral"] = kval_spectral
 
     if doplot:
-        plotrhspline(
-            rh_arr, knots=knots, kval_spectral=kval_spectral, **kwargs
-        )
+        plotrhspline(rh_arr, knots=knots, kval_spectral=kval_spectral, **kwargs)
 
     return invout, rh_arr
 
@@ -657,9 +614,7 @@ def arcs2splines(
             # for testing out in increments
             latency = kwargs.get("latency")
             knott = invout["knots"]
-            tplott = np.linspace(
-                knott[0], knott[-1], int(knott[-1] - knott[0] + 1)
-            )
+            tplott = np.linspace(knott[0], knott[-1], int(knott[-1] - knott[0] + 1))
             try:
                 spectspline = cubspl_nans(
                     tplott, invout["knots"], invout["kval_spectral"]
@@ -689,6 +644,4 @@ def arcs2splines(
         pickle.dump(invout, f)
         f.close()
 
-    plotrhspline(
-        rh_arr_all, knots=knots_all, kval_spectral=kval_spectral, **kwargs
-    )
+    plotrhspline(rh_arr_all, knots=knots_all, kval_spectral=kval_spectral, **kwargs)

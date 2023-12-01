@@ -23,17 +23,39 @@ source .venv/bin/activate
 python -m pip install .
 ```
 
-
 ## How to use the code
-SNR data can be coverted to 'arcs' and then to a water level spline.
-Easiest to use from the command line as follows
+SNR data can be coverted to 'arcs' and then to a water level spline. Below is an example of how to process one day of data from Saint-Joseph-de-la-Rive.
+
+### Step 1: initialise localproc directory
+```
+python init_localproc.py
+```
+
+### Step 2: process test data
+```
+python main.py sjdlr arcs2splines
+```
+this command should produce the following plot:
+
+![spline output](tests/testdata/sjdlr/sjdlr_oneday.png "test output")
+
+### general usage
 ```
 python main.py [station] [funcname]
 ```
-where `[station]` corresponds to a file: `site_inputs/[station].py`
-and funcname is one of 'snr2arcs', 'arcsplot' or 'arcs2splines'
+* `[station]` corresponds to a file: `site_inputs/[station].py` (either `sjdlr` or `rv3s`)
+* `[funcname]` is one of `snr2arcs`, `arcsplot` or `arcs2splines`
+You can edit the station file in site_inputs as desired
 
 ## SNR data format
-SNR data to go with the paper can be found [here](https://doi.org/10.5281/zenodo.10114719). The SNR data format is similar to [this format](https://gnssrefl.readthedocs.io/en/latest/pages/file_structure.html#the-snr-data-format), but with differences on fourth and fifth columns:
+The SNR data format is similar to [this format](https://gnssrefl.readthedocs.io/en/latest/pages/file_structure.html#the-snr-data-format), but with differences on fourth and fifth columns:
 * instead of seconds of day in the fourth column it is [GPS time](https://docs.astropy.org/en/stable/api/astropy.time.TimeGPS.html)
 * the fifth column is L1 SNR (there are only five columns)
+
+## Article data
+SNR data to go with the paper can be found [here](https://doi.org/10.5281/zenodo.10114719). It can be downloaded using zenodo_get
+
+```
+zenodo_get 10.5281/zenodo.10114719
+```
+Note: this will take a few minutes (~ 1Gb of data)
