@@ -4,3 +4,6 @@ temp_outputs/
 __pycache__/
 *.pyc
 archive/
+localproc/
+**/.DS_Store
+.DS_Store

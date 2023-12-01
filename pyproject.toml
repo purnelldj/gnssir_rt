@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "gnssir-rt"
+version = "1.0.0"
+description = "processing tools for GNSS-IR water level monitoring"
+authors = ["David Purnell <davejpurnell@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+matplotlib = "^3.8.2"
+numpy = "^1.26.2"
+astropy = "^6.0.0"
+scipy = "^1.11.4"
+black = "^23.11.0"
+flake8 = "^6.1.0"
+pre-commit = "^3.5.0"
+isort = "^5.12.0"
+pytest = "^7.4.3"
+zenodo-get = "^1.5.1"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
