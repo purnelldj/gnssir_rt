@@ -41,7 +41,7 @@ this command should produce the following plot:
 
 ### general usage
 ```
-python main.py [station] [funcname]
+python main_cl.py [station] [funcname]
 ```
 * `[station]` corresponds to a file: `site_inputs/[station].py` (either `sjdlr` or `rv3s`)
 * `[funcname]` is one of `snr2arcs`, `arcsplot` or `arcs2splines`

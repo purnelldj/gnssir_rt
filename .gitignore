@@ -5,3 +5,5 @@ __pycache__/
 *.pyc
 archive/
 localproc/
+**/.DS_Store
+.DS_Store
