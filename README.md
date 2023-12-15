@@ -5,22 +5,10 @@ All code written by David Purnell except for gnssr/make_gpt.py (written by Krist
 ## Installation
 Requires python >= 3.9, git and pip.
 
-### Step 1: clone repository
 ```
-git clone https://github.com/purnelldj/gnssir_rt
+git clone https://github.com/purnelldj/gnssir_rt.git
 cd gnssir_rt
-
-```
-### Step 2: [optional] create and activate venv
-If you skip this step then the dependencies will be installed on your global python environment (not recommended). To create a venv called '.venv' using mac OS:
-```
-python -m venv .venv
-source .venv/bin/activate
-
-```
-### Step 3: install using pip
-```
-python -m pip install .
+python -m pip install -e .
 ```
 
 ## How to use the code
