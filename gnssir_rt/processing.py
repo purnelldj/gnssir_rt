@@ -14,7 +14,7 @@ from astropy.timeseries import LombScargle
 from scipy.optimize import leastsq
 from scipy.signal import find_peaks
 
-from gnssir_rt.elv_interp_txt import elv_interp_array
+from gnssir_rt.elv_interp import elv_interp_array
 from gnssir_rt.helper import (
     cubspl_nans,
     datetime2gps,
