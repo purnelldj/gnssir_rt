@@ -25,7 +25,7 @@ python main_cl.py sjdlr arcs2splines
 ```
 this command should produce the following plot:
 
-![spline output](tests/testdata/sjdlr/sjdlr_oneday.png "test output")
+![spline output](sjdlr_oneday.png "test output")
 
 ### general usage
 ```
