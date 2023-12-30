@@ -2,52 +2,37 @@
 written by David Purnell
 https://github.com/purnelldj
 """
+from datetime import datetime
 
-import argparse
-from importlib import import_module
+import hydra
+from omegaconf import DictConfig
 
 from gnssir_rt.processing import arcs2splines, arcsplot, snr2arcs
 
-parser = argparse.ArgumentParser()
-parser.add_argument("station", help="station ID")
-parser.add_argument("funcname", help="function name: snr2arcs, arcsplot or arcs2spline")
-parser.add_argument(
-    "-t", "--true", nargs="+", help="add [multiple] optional params to = True"
-)
-parser.add_argument(
-    "-f",
-    "--false",
-    nargs="+",
-    help="add [multiple] optional params to = False",
-)
-args = parser.parse_args()
 
-station_id = args.station
-funcname = args.funcname
+@hydra.main(config_path="configs/", config_name="main", version_base=None)
+def main(cfg: DictConfig):
+    print(f"site is {cfg.site_name}")
 
-print(station_id, funcname)
+    pyargs = load_cfg(cfg)
 
-station_input_file = "site_inputs." + station_id
-try:
-    tmod = import_module(station_input_file)
-except ModuleNotFoundError:
-    print(f"station input file {station_input_file} does not exist")
-    exit()
-pyargs = tmod.__dict__
+    if cfg.run == "snr2arcs":
+        snr2arcs(**pyargs)
+    elif cfg.run == "arcsplot":
+        arcsplot(**pyargs)
+    elif cfg.run == "arcs2splines":
+        arcs2splines(**pyargs)
+    else:
+        print(f"input function '{cfg.run}' not recognized ")
+        print("e.g., set run=snr2arcs from command line")
 
-# setting optional args True/False
-if args.true is not None:
-    for arg in args.true:
-        pyargs[arg] = True
-if args.false is not None:
-    for arg in args.false:
-        pyargs[arg] = False
 
-if funcname == "snr2arcs":
-    snr2arcs(**pyargs)
-elif funcname == "arcsplot":
-    arcsplot(**pyargs)
-elif funcname == "arcs2splines":
-    arcs2splines(**pyargs)
-else:
-    print("did not recognise input function")
+def load_cfg(cfg):
+    pyargs = dict(cfg)
+    for dt in ["sdt", "edt"]:
+        pyargs[dt] = datetime.strptime(pyargs[dt], "%y-%m-%d %H:%M")
+    return pyargs
+
+
+if __name__ == "__main__":
+    main()

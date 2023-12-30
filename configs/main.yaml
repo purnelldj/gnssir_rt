@@ -1,0 +1,30 @@
+defaults:
+  - site: sjdlr
+  - _self_
+
+# set run from command line
+run: set_function_name
+
+# directories and files
+cwd: ${hydra:runtime.cwd}
+site_parent: ${cwd}/localproc/
+site_name: ${hydra:runtime.choices.site}
+stationdir: ${site_parent}${site_name}
+snrdir: ${stationdir}/snr
+arcdir: ${stationdir}/arcs
+gptfile: ${stationdir}/tropd_input.txt
+outdir: temp_outputs
+
+# snr2arc parameters
+elvinterp: True
+tempres: 5
+arclim: 3600
+iterdt_arcs: 3600
+snrfilelen: 3600
+
+# arcs2splines parameters
+prek: 2
+postk: 2
+iterdt_spline: 3600
+pktnlim: 3
+# latency: 3600
