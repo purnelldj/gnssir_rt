@@ -1,7 +1,3 @@
-"""
-written by David Purnell
-https://github.com/purnelldj
-"""
 from pathlib import Path
 
 import matplotlib.pyplot as plt

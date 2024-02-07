@@ -1,7 +1,3 @@
-"""
-written by David Purnell
-https://github.com/purnelldj
-"""
 from datetime import datetime
 
 import hydra

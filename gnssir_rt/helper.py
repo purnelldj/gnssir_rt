@@ -1,8 +1,3 @@
-"""
-written by David Purnell
-https://github.com/purnelldj
-"""
-
 import numpy as np
 from astropy.time import Time
 from matplotlib.dates import date2num
@@ -12,6 +7,8 @@ from scipy import interpolate
 def readsnrtxt(snrfile):
     """ """
     snrdata = np.loadtxt(snrfile)
+    if snrdata.shape[1] != 5:
+        raise Exception("snr data should have shape (n, 5)")
     return snrdata
 
 
@@ -89,9 +86,7 @@ def cubspl_nans(tplot, knots, kval):
     knots_red = knots[tfilter]
     naninds = np.where(np.isnan(kval))[0]
     cubspl_f = interpolate.interp1d(knots_red, kval_red, kind="cubic")
-    tfilter = np.logical_and(
-        tplot >= np.min(knots_red), tplot <= np.max(knots_red)
-    )
+    tfilter = np.logical_and(tplot >= np.min(knots_red), tplot <= np.max(knots_red))
     tplot_red = tplot[tfilter]
     rh_out = cubspl_f(tplot_red)
     # now add in parts before and after
@@ -127,14 +122,10 @@ def residuals_cubspl_spectral(kval, knots, rh_arr):
     """
     function needed for inverse analysis
     """
-    tfilter = np.logical_and(
-        rh_arr[:, 0] >= knots[0], rh_arr[:, 0] <= knots[-1]
-    )
+    tfilter = np.logical_and(rh_arr[:, 0] >= knots[0], rh_arr[:, 0] <= knots[-1])
     rh_arr = rh_arr[tfilter]
     dt_even = 1 * 60
-    t_even = np.linspace(
-        knots[0], knots[-1], int((knots[-1] - knots[0]) / dt_even) + 1
-    )
+    t_even = np.linspace(knots[0], knots[-1], int((knots[-1] - knots[0]) / dt_even) + 1)
     cubspl_f = interpolate.interp1d(knots, kval, kind="cubic")
     cubspl_even = cubspl_f(t_even)
     dhdt_even = np.gradient(cubspl_even, dt_even)

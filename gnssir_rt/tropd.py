@@ -1,16 +1,9 @@
-"""
-written by David Purnell
-https://github.com/purnelldj
-"""
-
 import os
 import pickle
 
 import numpy as np
 
 from gnssir_rt.make_gpt import gpt2_1w, makegptfile
-
-# written by David Purnell
 
 
 def tropd(
