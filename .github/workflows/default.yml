@@ -1,0 +1,33 @@
+name: default
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  build_test:
+    name: build_test
+    runs-on: ubuntu-latest
+    steps:
+    - name: Clone repo
+      uses: actions/checkout@v3
+    - name: Set up python
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.9
+        cache: 'pip'
+    - name: Install dependencies
+      run: pip install -e .
+#    - name: isort
+#      run: python -m isort . --check --diff
+    - name: black
+      run: python -m black --check --diff .
+    - name: flake8
+      run: python -m flake8 .
+    - name: tests
+      run: python -m pytest
