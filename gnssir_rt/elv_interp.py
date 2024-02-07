@@ -1,8 +1,3 @@
-"""
-written by David Purnell
-https://github.com/purnelldj
-"""
-
 import numpy as np
 from scipy import interpolate
 from scipy.optimize import least_squares

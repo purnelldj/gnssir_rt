@@ -1,8 +1,3 @@
-"""
-written by David Purnell
-https://github.com/purnelldj
-"""
-
 import datetime
 import pickle
 import time
