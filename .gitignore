@@ -8,3 +8,4 @@ localproc/
 **/.DS_Store
 .DS_Store
 outputs/
+.pytest_cache

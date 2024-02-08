@@ -1,6 +1,6 @@
 # gnssir_rt
 This software is to go with "Real-time water levels using GNSS-IR: a potential tool for flood monitoring" by Purnell et al. (Geophysical Research Letters)
-All code written by David Purnell except for gnssr/make_gpt.py (written by Kristine Larson)
+All code written by David Purnell except for make_gpt.py (written by Kristine Larson)
 
 ## Installation
 Requires python >= 3.9, git and pip.
