@@ -46,7 +46,9 @@ unzip sjdlr.zip -d gnssir-data
 gnssir --task arcs2splines --site_dir gnssir-data/sjdlr --config gnssir-data/sjdlr/sjdlr.yaml
 ```
 
-This will generate a plot showing one day of processed water level data.
+This will generate a plot showing one day of processed water level data, as shown below.
+
+<img src="images/sjdlr_oneday.png" alt="Example output: One day of processed water level data at Saint-Joseph-de-la-Rive" width="400"/>
 
 ## Usage
 
