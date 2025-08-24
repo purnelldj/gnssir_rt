@@ -72,7 +72,7 @@ def tropd(
     if "gpt_init_file" in kwargs:
         gpt_init_file = kwargs.get("gpt_init_file")
     else:
-        gpt_init_file = "gnssir_rt/gpt_1wA.pickle"
+        gpt_init_file = "gnssir/gpt_1wA.pickle"
 
     # Get meteorological data
     if "metdatafile" in kwargs:
