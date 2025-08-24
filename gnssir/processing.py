@@ -179,30 +179,30 @@ def snr2arc(
 def snr2arcs(
     sdt,
     edt,
-    snrdir,
-    arcdir,
+    snr_dir,
+    arc_dir,
     rhlims,
     arclim,
     iterdt_arcs,
     antennaids=[""],
     **kwargs,
 ):
-    snrdir_parent = snrdir
-    arcdir_parent = arcdir
+    snr_dir_parent = snr_dir
+    arc_dir_parent = arc_dir
     for aid in antennaids:
         if len(aid) > 0:
-            snrdir = snrdir_parent + "/" + aid
-            arcdir = arcdir_parent + "/" + aid
-        print(f"snrdir: {snrdir}")
-        print(f"arcdir: {arcdir}")
-        snr2arc_iterate(sdt, edt, snrdir, arcdir, rhlims, arclim, iterdt_arcs, **kwargs)
+            snr_dir = snr_dir_parent + "/" + aid
+            arc_dir = arc_dir_parent + "/" + aid
+        print(f"snr_dir: {snr_dir}")
+        print(f"arc_dir: {arc_dir}")
+        snr2arc_iterate(sdt, edt, snr_dir, arc_dir, rhlims, arclim, iterdt_arcs, **kwargs)
 
 
 def snr2arc_iterate(
     sdt,
     edt,
-    snrdir,
-    arcdir,
+    snr_dir,
+    arc_dir,
     rhlims,
     arclim,
     iterdt_arcs,
@@ -216,8 +216,8 @@ def snr2arc_iterate(
     """
     :param sdt: datetime format of start date and time
     :param edt: datetime format of end date and time
-    :param snrdir: string to directory where snr data is contained (i.e., from nmea2snr function output)
-    :param arcdir: string path to output directory
+    :param snr_dir: string to directory where snr data is contained (i.e., from nmea2snr function output)
+    :param arc_dir: string path to output directory
     :param rhlims: reflector height limits, e.g., [4, 6] (in meters)
     :param arclim: time limit applied to arcs (seconds)
     :param iterdt_arcs: timestep (seconds)
@@ -252,7 +252,7 @@ def snr2arc_iterate(
             ttdt = tdts - snrfilelen_td
         while ttdt < tdte - snrfilelen_td:
             ttdt = ttdt + snrfilelen_td
-            snrfilestr = snrdir + "/" + ttdt.strftime("%y_%m_%d_%H") + ".snr"
+            snrfilestr = snr_dir + "/" + ttdt.strftime("%y_%m_%d_%H") + ".snr"
             try:
                 snrdatat = readsnrtxt(snrfilestr)
                 snrdata = np.vstack((snrdata, snrdatat))
@@ -283,8 +283,8 @@ def snr2arc_iterate(
         timey = time.time()
         rh_arr, snrdt_arr = snr2arc(snrdata, rhlims, gsignal=gsignal, **kwargs)
         print(f"took {(time.time() - timey):.2f} seconds to convert to arcs ")
-        Path(arcdir).mkdir(parents=True, exist_ok=True)
-        invfilestr = arcdir + "/" + str(tdt.strftime("%y_%m_%d_%H_%M")) + ".pkl"
+        Path(arc_dir).mkdir(parents=True, exist_ok=True)
+        invfilestr = arc_dir + "/" + str(tdt.strftime("%y_%m_%d_%H_%M")) + ".pkl"
         f = open(invfilestr, "wb")
         pickle.dump(rh_arr, f)
         pickle.dump(snrdt_arr, f)
@@ -293,7 +293,7 @@ def snr2arc_iterate(
 
 
 def collectarcs(
-    arcdir,
+    arc_dir,
     sdt,
     edt,
     hgts,
@@ -305,13 +305,13 @@ def collectarcs(
     if len(antennaids) != len(hgts):
         print("need to give an input height for each antenna")
         exit()
-    arcdir_parent = arcdir
-    arcdir = [arcdir_parent + "/" + aid for aid in antennaids]
+    arc_dir_parent = arc_dir
+    arc_dir = [arc_dir_parent + "/" + aid for aid in antennaids]
     arclim_td = datetime.timedelta(seconds=arclim)
     rh_arr = np.empty((0, 13))
     snrdt_arr = np.empty((0, 5))
     tfdates = []
-    for arcd in arcdir:
+    for arcd in arc_dir:
         tfs = listdir(arcd)
         tfs = [tf for tf in tfs if tf[-4:] == ".pkl"]
         ttfdates = [datetime.datetime.strptime(tf[0:14], "%y_%m_%d_%H_%M") for tf in tfs]
@@ -329,8 +329,8 @@ def collectarcs(
         tdt = tdt + arclim_td
         rh_arrt = np.empty((0, 13))
         snrdt_arrt = np.empty((0, 6))
-        for ii in range(len(arcdir)):
-            tdtf = arcdir[ii] + "/" + str(tdt.strftime("%y_%m_%d_%H_%M")) + ".pkl"
+        for ii in range(len(arc_dir)):
+            tdtf = arc_dir[ii] + "/" + str(tdt.strftime("%y_%m_%d_%H_%M")) + ".pkl"
             try:
                 f = open(tdtf, "rb")
                 rh_arrtt = pickle.load(f)
@@ -444,8 +444,8 @@ def arcsqc(rh_arr, snrdt_arr, qc_std=True, **kwargs):
     return rh_arr, snrdt_arr
 
 
-def arcsplot(arcdir, sdt, edt, hgts, antennaids, arclim=60 * 60, **kwargs):
-    rh_arr, _ = collectarcs(arcdir, sdt, edt, hgts, antennaids, arclim=arclim, **kwargs)
+def arcsplot(arc_dir, sdt, edt, hgts, antennaids, arclim=60 * 60, **kwargs):
+    rh_arr, _ = collectarcs(arc_dir, sdt, edt, hgts, antennaids, arclim=arclim, **kwargs)
     plotrhspline(rh_arr, plotrh=True, **kwargs)
 
 
@@ -527,7 +527,7 @@ def arcs2spline(rh_arr, snrdt_arr, knots, doplot=False, tropd_adj=True, **kwargs
 
 
 def arcs2splines(
-    arcdir,
+    arc_dir,
     sdt,
     edt,
     iterdt_spline,
@@ -555,7 +555,7 @@ def arcs2splines(
         knots = np.linspace(tdts, tdte, int(prek + postk + 1))
         knots_all = np.append(knots_all, tdt)
         rh_arr, snrdt_arr = collectarcs(
-            arcdir,
+            arc_dir,
             gps2datetime(knots[0]),
             gps2datetime(knots[-1]),
             hgts,
