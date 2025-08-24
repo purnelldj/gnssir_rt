@@ -10,9 +10,9 @@ def pload(fname):
 
 @fixture
 def snr_in():
-    return pload("tests/testdata/snr_in.pkl")
+    return pload("tests/data/snr_in.pkl")
 
 
 @fixture
 def snr_elv_interp_out():
-    return pload("tests/testdata/snr_elv_interp_out.pkl")
+    return pload("tests/data/snr_elv_interp_out.pkl")
