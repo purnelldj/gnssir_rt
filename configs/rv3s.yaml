@@ -1,0 +1,18 @@
+# @package _global_
+# DO NOT REMOVE THE LINE ABOVE
+
+# general
+sdt: 20-09-12 00:00
+edt: 20-09-13 00:00
+antennaids: ["a", "b", "c", "d"]
+hgts: [0.2, 0.3, 0, 0.1]
+lla: [46.340526, -72.539128, -22.4]
+
+# snr2arcs parameters
+azilims: [80, 220]  # 80, 220
+elvlims: [5, 30]  # 10, 20
+rhlims: [3, 7]
+
+# arc2splines parameters
+kdt: 3600
+fixed_std: 0.3
