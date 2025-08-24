@@ -1,20 +1,40 @@
 [project]
 name = "gnssir-rt"
-version = "1.1.0"
-description = "processing tools for GNSS-IR water level monitoring"
+version = "2.0.0"
+description = "Real-time processing tools for GNSS-IR water level monitoring and flood detection"
 authors = [
     { name = "David Purnell", email = "davejpurnell@gmail.com" }
 ]
 readme = "README.md"
+license = { text = "BSD-3-Clause" }
 requires-python = ">= 3.9"
+keywords = ["gnss", "gnss-ir", "water-level", "flood-monitoring", "remote-sensing", "interferometry"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: BSD License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+]
 dependencies = [
     "astropy",
-    "hydra-core",
+    "jsonargparse",
     "matplotlib",
     "numpy",
     "scipy",
     "zenodo-get",
 ]
+
+[project.urls]
+Homepage = "https://github.com/purnelldj/gnssir-rt"
+Documentation = "https://github.com/purnelldj/gnssir-rt#readme"
+Repository = "https://github.com/purnelldj/gnssir-rt.git"
+Issues = "https://github.com/purnelldj/gnssir-rt/issues"
+Changelog = "https://github.com/purnelldj/gnssir-rt/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
@@ -28,8 +48,11 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project.scripts]
-gnssir = "gnssir.main_cl:main"
+gnssir = "gnssir.cli:cli"
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["gnssir"]
+include = ["gnssir*"]
+
+[tool.setuptools.package-data]
+gnssir = ["*.pickle"]
