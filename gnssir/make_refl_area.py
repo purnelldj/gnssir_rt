@@ -1,109 +1,225 @@
 """
 This code has been adapted from an earlier version of 'gnssrefl'
 https://github.com/kristinemlarson/gnssrefl/
+
+Functions for calculating and visualizing GNSS-IR reflection areas.
 """
 
 import numpy as np
 import simplekml
+from pathlib import Path
+from typing import List, Tuple, Optional
 
 from gnssir.tropd import corr_rh_facs
 
 
-def getFresDims(rh, elv, gsignal="L1"):
+def get_fresnel_dimensions(rh: float, elv: float, gsignal: str = "L1") -> List[float]:
+    """
+    Calculate Fresnel zone dimensions for GNSS-IR.
+
+    Parameters
+    ----------
+    rh : float
+        Reflector height in meters
+    elv : float
+        Elevation angle in degrees
+    gsignal : str, optional
+        GNSS signal type, by default "L1"
+
+    Returns
+    -------
+    List[float]
+        [R, a, b] where R is radial distance to center, a and b are semi-axes
+
+    Raises
+    ------
+    ValueError
+        If gsignal is not supported
+    """
     if gsignal == "L1":
         lfreq = 1575.42e6
     else:
-        raise Exception("only works for L1 right now")
-    lcar = 299792458 / lfreq
+        raise ValueError("Only L1 signal is currently supported")
+
+    lcar = 299792458 / lfreq  # wavelength
     n = 1  # first fresnel zone - don't change
     d = n * lcar / 2
-    sinElv = np.sin(elv / 180 * np.pi)
-    tanElv = np.tan(elv / 180 * np.pi)
-    R = rh / tanElv + (d / sinElv) / tanElv  # radial dist to center
-    b = np.sqrt(2 * d * rh / sinElv + (d / sinElv) ** 2)
-    a = b / sinElv
-    ffz = [R, a, b]
-    return ffz
+
+    sin_elv = np.sin(np.radians(elv))
+    tan_elv = np.tan(np.radians(elv))
+
+    R = rh / tan_elv + (d / sin_elv) / tan_elv  # radial dist to center
+    b = np.sqrt(2 * d * rh / sin_elv + (d / sin_elv) ** 2)
+    a = b / sin_elv
+
+    return [R, a, b]
 
 
-def circleLatLon(lat, lon, radius, azilims, NumPoints=10, **kwargs):
-    R = 6.371e6  # radius of earth in meters
-    if azilims[1] < azilims[0]:
-        raise Exception("upper and lower azi lims reversed - exit")
-    azi = np.linspace(azilims[0], azilims[1], NumPoints + 1)
-    aziRad = [az / 180 * np.pi for az in azi]
-    angDist = radius / R  # distance is always radius out from station
-    sinlat = np.sin(lat / 180 * np.pi)
-    coslat = np.cos(lat / 180 * np.pi)
-    lonRad = lon / 180 * np.pi
-    latCirc = np.arcsin(sinlat * np.cos(angDist) + coslat * np.sin(angDist) * np.cos(aziRad))
-    lonCirc = lonRad + np.arctan2(
-        np.sin(aziRad) * np.sin(angDist) * coslat,
-        np.cos(angDist) - sinlat * np.sin(latCirc),
+def calculate_circle_lat_lon(
+    lat: float, lon: float, radius: float, azimuth_limits: List[float], num_points: int = 10
+) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    Calculate latitude and longitude points for a circle arc on Earth's surface.
+
+    Parameters
+    ----------
+    lat : float
+        Center latitude in degrees
+    lon : float
+        Center longitude in degrees
+    radius : float
+        Radius in meters
+    azimuth_limits : List[float]
+        [min_azimuth, max_azimuth] in degrees
+    num_points : int, optional
+        Number of points to generate, by default 10
+
+    Returns
+    -------
+    Tuple[np.ndarray, np.ndarray]
+        (latitudes, longitudes) arrays of circle points
+
+    Raises
+    ------
+    ValueError
+        If azimuth limits are reversed
+    """
+    earth_radius = 6.371e6  # radius of earth in meters
+
+    if azimuth_limits[1] < azimuth_limits[0]:
+        raise ValueError("Upper and lower azimuth limits are reversed")
+
+    azi = np.linspace(azimuth_limits[0], azimuth_limits[1], num_points + 1)
+    azi_rad = np.radians(azi)
+    ang_dist = radius / earth_radius  # angular distance
+
+    sin_lat = np.sin(np.radians(lat))
+    cos_lat = np.cos(np.radians(lat))
+    lon_rad = np.radians(lon)
+
+    lat_circ = np.arcsin(sin_lat * np.cos(ang_dist) + cos_lat * np.sin(ang_dist) * np.cos(azi_rad))
+    lon_circ = lon_rad + np.arctan2(
+        np.sin(azi_rad) * np.sin(ang_dist) * cos_lat,
+        np.cos(ang_dist) - sin_lat * np.sin(lat_circ),
     )
-    latCirc = latCirc / np.pi * 180
-    lonCirc = lonCirc / np.pi * 180
-    # plt.subplots(figsize=(5, 5))
-    # plt.plot(lonCirc, latCirc)
-    # tmp = ''
-    # if 'tmp' in kwargs:
-    #    tmp = kwargs.get('tmp')
-    # plt.savefig(tmp + 'circtest.png', format='png')
-    return latCirc, lonCirc
+
+    lat_circ = np.degrees(lat_circ)
+    lon_circ = np.degrees(lon_circ)
+
+    return lat_circ, lon_circ
 
 
-def reflarea(lla, rhlims, azilims, elvlims, gsignal="L1", tropdAdj=True, fullFres=False, **kwargs):
-    latLon = [lla[0], lla[1]]
-    if tropdAdj:
-        pant = 1000  # random average values, not really important
-        tant = 10
-        eant = 5
-        rhfacOuter = corr_rh_facs(elvlims[0], elvlims[0], pant, tant, eant)
-        rhfacInner = corr_rh_facs(elvlims[1], elvlims[1], pant, tant, eant)
-        ffzOuter = getFresDims(rhlims[1] + rhlims[1] * rhfacOuter, elvlims[0], gsignal=gsignal)
-        ffzInner = getFresDims(rhlims[0] + rhlims[0] * rhfacInner, elvlims[1], gsignal=gsignal)
+def calculate_reflection_area(
+    lla: List[float],
+    rh_limits: List[float],
+    azimuth_limits: List[float],
+    elevation_limits: List[float],
+    gsignal: str = "L1",
+    tropd_adj: bool = True,
+    full_fresnel: bool = False,
+    station_name: Optional[str] = None,
+    output_dir: str = ".",
+) -> dict:
+    """
+    Calculate and generate KML file for GNSS-IR reflection area.
+
+    Parameters
+    ----------
+    lla : List[float]
+        [latitude, longitude, altitude] of the station
+    rh_limits : List[float]
+        [min_height, max_height] reflector height limits in meters
+    azimuth_limits : List[float]
+        [min_azimuth, max_azimuth] in degrees
+    elevation_limits : List[float]
+        [min_elevation, max_elevation] in degrees
+    gsignal : str, optional
+        GNSS signal type, by default "L1"
+    tropd_adj : bool, optional
+        Apply tropospheric delay adjustment, by default True
+    full_fresnel : bool, optional
+        Use full Fresnel zone, by default False
+    station_name : Optional[str], optional
+        Name for the reflection area, by default None
+    output_dir : str, optional
+        Output directory for KML file, by default "."
+
+    Returns
+    -------
+    dict
+        Dictionary containing polygon coordinates and metadata
+    """
+    lat_lon = [lla[0], lla[1]]
+
+    if tropd_adj:
+        # Default atmospheric parameters (not critical for area calculation)
+        pant = 1000  # pressure in hPa
+        tant = 10  # temperature in °C
+        eant = 5  # water vapor pressure in hPa
+
+        rhfac_outer = corr_rh_facs(elevation_limits[0], elevation_limits[0], pant, tant, eant)
+        rhfac_inner = corr_rh_facs(elevation_limits[1], elevation_limits[1], pant, tant, eant)
+
+        ffz_outer = get_fresnel_dimensions(
+            rh_limits[1] + rh_limits[1] * rhfac_outer, elevation_limits[0], gsignal=gsignal
+        )
+        ffz_inner = get_fresnel_dimensions(
+            rh_limits[0] + rh_limits[0] * rhfac_inner, elevation_limits[1], gsignal=gsignal
+        )
     else:
-        ffzOuter = getFresDims(rhlims[1], elvlims[0], gsignal=gsignal)
-        ffzInner = getFresDims(rhlims[0], elvlims[1], gsignal=gsignal)
-    radOuter = ffzOuter[0]
-    radInner = ffzInner[0]
-    if fullFres:
-        radOuter = radOuter + ffzOuter[1]
-        radInner = radInner - ffzInner[1]
-    latOuter, lonOuter = circleLatLon(latLon[0], latLon[1], radOuter, azilims, NumPoints=10)
-    latInner, lonInner = circleLatLon(latLon[0], latLon[1], radInner, azilims, NumPoints=5)
-    # assuming that looking southward, go clockwise
-    # go backwards along inner circle
-    # then forwards along outter circle
-    latPoly = np.append(np.flip(latInner), latOuter)
-    latPoly = np.append(latPoly, latInner[-1])
-    lonPoly = np.append(np.flip(lonInner), lonOuter)
-    lonPoly = np.append(lonPoly, lonInner[-1])
-    # lonLatPairs = [(lonPoly[i], latPoly[i]) for i in range(len(latPoly))]
-    lonLatPairs = [[lonPoly[i], latPoly[i]] for i in range(len(latPoly))]  # for ee
-    lonLatSNAP = [(lonPoly[i], latPoly[i]) for i in range(len(latPoly))]
-    # snapPoly = 'POLYGON((%3.10f %3.10f, %3.10f %3.10f, %3.10f %3.10f, %3.10f %3.10f, %3.10f %3.10f))' %(lonInner[-1], latInner[-1],
-    # lonInner[0], latInner[0], lonOuter[0], latOuter[0], lonOuter[-1], latOuter[-1], lonInner[-1], latInner[-1])
-    print("for GEE:")
-    print(lonLatPairs)
-    print("for SNAP:")
-    print(lonLatSNAP)
-    snapPoly = "POLYGON(("
-    for i in range(len(lonPoly)):
+        ffz_outer = get_fresnel_dimensions(rh_limits[1], elevation_limits[0], gsignal=gsignal)
+        ffz_inner = get_fresnel_dimensions(rh_limits[0], elevation_limits[1], gsignal=gsignal)
+
+    rad_outer = ffz_outer[0]
+    rad_inner = ffz_inner[0]
+
+    if full_fresnel:
+        rad_outer = rad_outer + ffz_outer[1]
+        rad_inner = rad_inner - ffz_inner[1]
+
+    # Calculate circle coordinates
+    lat_outer, lon_outer = calculate_circle_lat_lon(
+        lat_lon[0], lat_lon[1], rad_outer, azimuth_limits, num_points=10
+    )
+    lat_inner, lon_inner = calculate_circle_lat_lon(
+        lat_lon[0], lat_lon[1], rad_inner, azimuth_limits, num_points=5
+    )
+
+    # Create polygon by going backwards along inner circle, then forwards along outer circle
+    lat_poly = np.append(np.flip(lat_inner), lat_outer)
+    lat_poly = np.append(lat_poly, lat_inner[-1])
+    lon_poly = np.append(np.flip(lon_inner), lon_outer)
+    lon_poly = np.append(lon_poly, lon_inner[-1])
+
+    # Create coordinate pairs for different formats
+    lon_lat_pairs = [[lon_poly[i], lat_poly[i]] for i in range(len(lat_poly))]  # for GEE
+
+    # Create WKT polygon string
+    snap_poly = "POLYGON(("
+    for i in range(len(lon_poly)):
         if i > 0:
-            snapPoly = snapPoly + ", "
-        tcoor = "%3.10f %3.10f" % (lonPoly[i], latPoly[i])
-        snapPoly = snapPoly + tcoor
-    snapPoly = snapPoly + "))"
-    print(snapPoly)
+            snap_poly += ", "
+        coord = f"{lon_poly[i]:.10f} {lat_poly[i]:.10f}"
+        snap_poly += coord
+    snap_poly += "))"
+    print(f"WKT Polygon:\n{snap_poly}")
+
+    # Create KML file
     kml = simplekml.Kml()
-    reflName = "reflArea"
-    if "stationName" in kwargs:
-        stationName = kwargs.get("stationName")
-        reflName = stationName
-    pol = kml.newpolygon(name=reflName, outerboundaryis=lonLatPairs)  # lon, lat, optional height
-    pol.style.polystyle.color = simplekml.Color.changealphaint(150, simplekml.Color.pink)  # max alpha is 255
-    if "tmp" in kwargs:
-        tmp = kwargs.get("tmp")
-    kml.save(tmp + "reflArea.kml")
-    return
+    refl_name = station_name if station_name else "refl_area"
+
+    pol = kml.newpolygon(name=refl_name, outerboundaryis=lon_lat_pairs)
+    pol.style.polystyle.color = simplekml.Color.changealphaint(150, simplekml.Color.pink)
+
+    # Ensure output directory exists
+    Path(output_dir).mkdir(parents=True, exist_ok=True)
+
+    kml_path = f"{output_dir}/{refl_name}.kml"
+    kml.save(kml_path)
+    print(f"\nKML file saved to: {kml_path}")
+
+    return {
+        "gee_coordinates": lon_lat_pairs,
+        "wkt_polygon": snap_poly,
+        "kml_path": kml_path,
+    }
