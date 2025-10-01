@@ -27,6 +27,7 @@ dependencies = [
     "numpy",
     "scipy",
     "zenodo-get",
+    "simplekml",
 ]
 
 [project.urls]

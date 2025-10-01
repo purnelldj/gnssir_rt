@@ -12,6 +12,7 @@ Each release can have sections: "Added", "Changed", "Deprecated", "Removed", "Fi
 
 ## Added
 
+- script for generating reflection area kml and WKT polygon
 - testing for helper functions and snr2arc
 
 
