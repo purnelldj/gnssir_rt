@@ -7,6 +7,7 @@ from typing import List
 from jsonargparse import ArgumentParser
 
 from gnssir.processing import arcs2splines, arcsplot, snr2arcs
+from gnssir.make_refl_area import calculate_reflection_area
 
 
 @dataclass
@@ -14,16 +15,18 @@ class Config:
     """Configuration for GNSS-IR processing tasks."""
 
     # required parameters
-    task: str  # Processing task: snr2arcs, arcsplot, or arcs2splines
-    sdt: str  # Start datetime (YY-MM-DD HH:MM)
-    edt: str  # End datetime (YY-MM-DD HH:MM)
-    site_dir: str  # Parent directory containing site data in subdirectories 'snr' and 'arcs'
-    antennaids: List[str]  # List of antenna IDs (e.g., ["ACM0", "ACM1", "ACM2", "ACM3"])
-    hgts: List[float]  # Antenna heights [m] (e.g., [0.2, 0.3, 0, 0.1])
+    task: str  # Processing task: snr2arcs, arcsplot, arcs2splines, or make_refl_area
     lla: List[float]  # Site coordinates [lat, lon, height] (e.g., [47.4488045, -70.365557, -20])
     azilims: List[float]  # Azimuth limits [min, max] degrees (e.g., [190, 250])
     elvlims: List[float]  # Elevation limits [min, max] degrees (e.g., [5, 20])
     rhlims: List[float]  # Reflector height limits [min, max] meters (e.g., [1.5, 9])
+
+    # Optional parameters for processing tasks (snr2arcs, arcsplot, arcs2splines)
+    sdt: str = None  # Start datetime (YY-MM-DD HH:MM)
+    edt: str = None  # End datetime (YY-MM-DD HH:MM)
+    site_dir: str = None  # Parent directory containing site data in subdirectories 'snr' and 'arcs'
+    antennaids: List[str] = None  # List of antenna IDs (e.g., ["ACM0", "ACM1", "ACM2", "ACM3"])
+    hgts: List[float] = None  # Antenna heights [m] (e.g., [0.2, 0.3, 0, 0.1])
 
     # Directories and files
     snr_dir: str = None  # SNR data directory (default: site_dir/snr)
@@ -46,6 +49,12 @@ class Config:
     kdt: int = 7200  # Knot spacing time (seconds)
     fixed_std: float = 1.0  # Fixed standard deviation for spline fitting
 
+    # Make reflection area parameters
+    gsignal: str = "L1"  # GNSS signal type
+    tropd_adj: bool = True  # Apply tropospheric delay adjustment
+    full_fresnel: bool = False  # Use full Fresnel zone
+    station_name: str = None  # Name for the reflection area
+
 
 def main(config: Config) -> None:
     """
@@ -55,6 +64,7 @@ def main(config: Config) -> None:
     - snr2arcs: Convert SNR data to arcs
     - arcsplot: Plot the arcs
     - arcs2splines: Convert arcs to splines
+    - make_refl_area: Generate reflection area KML file
 
     Parameters
     ----------
@@ -67,17 +77,32 @@ def main(config: Config) -> None:
         If the specified task is not recognized
     """
 
-    pyargs = load_cfg(config)
-
-    if config.task == "snr2arcs":
-        snr2arcs(**pyargs)
-    elif config.task == "arcsplot":
-        arcsplot(**pyargs)
-    elif config.task == "arcs2splines":
-        arcs2splines(**pyargs)
+    if config.task == "make_refl_area":
+        # Handle make_refl_area task separately as it doesn't need datetime processing
+        calculate_reflection_area(
+            lla=config.lla,
+            rh_limits=config.rhlims,
+            azimuth_limits=config.azilims,
+            elevation_limits=config.elvlims,
+            gsignal=config.gsignal,
+            tropd_adj=config.tropd_adj,
+            full_fresnel=config.full_fresnel,
+            station_name=config.station_name,
+            output_dir=config.outdir,
+        )
     else:
-        print(f"input function '{config.task}' not recognized ")
-        print("e.g., set --task=snr2arcs from command line")
+        # Handle other tasks that require datetime processing
+        pyargs = load_cfg(config)
+
+        if config.task == "snr2arcs":
+            snr2arcs(**pyargs)
+        elif config.task == "arcsplot":
+            arcsplot(**pyargs)
+        elif config.task == "arcs2splines":
+            arcs2splines(**pyargs)
+        else:
+            print(f"input function '{config.task}' not recognized ")
+            print("Available tasks: snr2arcs, arcsplot, arcs2splines, make_refl_area")
 
 
 def load_cfg(config: Config) -> Dict[str, Any]:
@@ -96,12 +121,24 @@ def load_cfg(config: Config) -> Dict[str, Any]:
     -------
     Dict[str, Any]
         Processed configuration dictionary with datetime objects
+
+    Raises
+    ------
+    ValueError
+        If required parameters for the task are missing
     """
     pyargs = config.__dict__.copy()
+
+    # Check required parameters for processing tasks
+    required_for_processing = ["sdt", "edt", "site_dir", "antennaids", "hgts"]
+    for param in required_for_processing:
+        if pyargs[param] is None:
+            raise ValueError(f"Parameter '{param}' is required for task '{config.task}'")
 
     # Convert datetime strings
     for dt in ["sdt", "edt"]:
         pyargs[dt] = datetime.strptime(pyargs[dt], "%y-%m-%d %H:%M")
+
     # make directories and files relative to site_dir if not explicitly provided
     if pyargs["snr_dir"] is None:
         pyargs["snr_dir"] = os.path.join(pyargs["site_dir"], "snr")
